@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acompanhamento de Atividades</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #20242a;
+      --muted: #657080;
+      --line: #dfe4ea;
+      --brand: #0f766e;
+      --brand-dark: #115e59;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #15803d;
+      --soft: #eef6f5;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      padding: 18px 22px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 16px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+
+    section {
+      display: none;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    .toolbar, .form-grid {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      background: white;
+      color: var(--ink);
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .wide { grid-column: span 2; }
+    .full { grid-column: 1 / -1; }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 12px;
+      font: inherit;
+      cursor: pointer;
+      background: white;
+      color: var(--ink);
+    }
+
+    button.primary {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+
+    button.primary:hover { background: var(--brand-dark); }
+
+    button.danger {
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 26px;
+      margin-top: 4px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f9fafb;
+      color: #394150;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      background: #f1f5f9;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    .pill.ok { background: #dcfce7; color: var(--ok); }
+    .pill.warn { background: #fef3c7; color: var(--warn); }
+    .pill.danger { background: #fee2e2; color: var(--danger); }
+    .pill.info { background: var(--soft); color: var(--brand-dark); }
+
+    .actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 900px) {
+      main { padding: 14px; }
+      .form-grid, .cards { grid-template-columns: 1fr; }
+      .wide, .full { grid-column: auto; }
+      header { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Acompanhamento de Atividades e Envios por WhatsApp</h1>
+  </header>
+
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="dashboard">Painel</button>
+      <button class="tab" data-tab="tarefas">Tarefas</button>
+      <button class="tab" data-tab="pessoas">Pessoas</button>
+      <button class="tab" data-tab="envios">Agenda de Envios</button>
+      <button class="tab" data-tab="config">Configurações</button>
+    </div>
+
+    <section id="dashboard" class="active">
+      <div class="cards">
+        <div class="metric">Tarefas cadastradas <strong id="m-total">0</strong></div>
+        <div class="metric">Em andamento <strong id="m-andamento">0</strong></div>
+        <div class="metric">Vencidas <strong id="m-vencidas">0</strong></div>
+        <div class="metric">Envios pendentes <strong id="m-envios">0</strong></div>
+      </div>
+      <div class="toolbar">
+        <input id="busca" placeholder="Buscar atividade, responsável ou observação">
+        <select id="filtro-status">
+          <option value="">Todos os status</option>
+          <option>Não iniciado</option>
+          <option>Em andamento</option>
+          <option>Concluído</option>
+          <option>Pausado</option>
+        </select>
+        <button class="primary" id="btn-exportar">Exportar backup</button>
+        <button id="btn-importar">Importar backup</button>
+        <input id="arquivo-importar" class="hidden" type="file" accept="application/json">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Atividade</th>
+              <th>Responsável</th>
+              <th>Status</th>
+              <th>Prazo</th>
+              <th>Dias</th>
+              <th>Situação</th>
+              <th>Próximo envio</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lista-dashboard"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tarefas">
+      <form id="form-tarefa" class="form-grid">
+        <input type="hidden" id="tarefa-id">
+        <label class="wide">Atividade
+          <input id="atividade" required>
+        </label>
+        <label>Data de abertura
+          <input id="abertura" type="date" required>
+        </label>
+        <label>Prazo de entrega
+          <input id="prazo" type="date" required>
+        </label>
+        <label>Responsável
+          <select id="responsavel" required></select>
+        </label>
+        <label>Status
+          <select id="status">
+            <option>Não iniciado</option>
+            <option>Em andamento</option>
+            <option>Concluído</option>
+            <option>Pausado</option>
+          </select>
+        </label>
+        <label>Periodicidade
+          <select id="periodicidade">
+            <option value="1">Diária</option>
+            <option value="2">A cada 2 dias</option>
+            <option value="7">Semanal</option>
+            <option value="15">Quinzenal</option>
+            <option value="30">Mensal</option>
+          </select>
+        </label>
+        <label>Próximo envio
+          <input id="proximoEnvio" type="date">
+        </label>
+        <label class="full">Observação
+          <textarea id="observacao"></textarea>
+        </label>
+        <div class="full actions">
+          <button class="primary" type="submit">Salvar tarefa</button>
+          <button type="button" id="limpar-tarefa">Limpar</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="pessoas">
+      <form id="form-pessoa" class="form-grid">
+        <input type="hidden" id="pessoa-id">
+        <label>Nome
+          <input id="pessoa-nome" required>
+        </label>
+        <label>Telefone com DDD
+          <input id="pessoa-telefone" placeholder="5585999999999" required>
+        </label>
+        <label>Grupo / setor
+          <input id="pessoa-setor" placeholder="Operacional">
+        </label>
+        <label>Status
+          <select id="pessoa-ativo">
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
+        </label>
+        <div class="full actions">
+          <button class="primary" type="submit">Salvar pessoa</button>
+          <button type="button" id="limpar-pessoa">Limpar</button>
+        </div>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Setor</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lista-pessoas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="envios">
+      <div class="toolbar">
+        <button class="primary" id="enviar-pendentes">Enviar pendentes</button>
+        <button id="atualizar-agenda">Atualizar agenda</button>
+        <span class="note">O envio abre o WhatsApp com a mensagem pronta. Para envio automático sem clique, use WhatsApp Business Cloud API com token oficial.</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Responsável</th>
+              <th>Telefone</th>
+              <th>Atividade</th>
+              <th>Mensagem</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lista-envios"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="config">
+      <div class="form-grid">
+        <label class="wide">Mensagem padrão
+          <textarea id="modelo-msg"></textarea>
+        </label>
+        <label class="wide">Link da página de acompanhamento
+          <input id="link-pagina" placeholder="https://seu-site.com/atividades">
+        </label>
+        <label>Enviar quando faltar até
+          <input id="dias-alerta" type="number" min="0" value="7">
+        </label>
+        <label>Horário sugerido
+          <input id="hora-envio" type="time" value="09:00">
+        </label>
+        <div class="full actions">
+          <button class="primary" id="salvar-config">Salvar configurações</button>
+          <button id="restaurar">Restaurar exemplo inicial</button>
+        </div>
+        <p class="full note">
+          Variáveis aceitas na mensagem: {nome}, {atividade}, {status}, {prazo}, {dias}, {observacao}, {link}.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const PUBLIC_URL = '';
+    const hojeISO = () => new Date().toISOString().slice(0, 10);
+    const uid = () => Math.random().toString(36).slice(2, 10);
+    const fmt = (iso) => iso ? iso.split('-').reverse().join('/') : '';
+    const diasEntre = (iso) => {
+      const hoje = new Date(hojeISO() + 'T00:00:00');
+      const data = new Date(iso + 'T00:00:00');
+      return Math.round((data - hoje) / 86400000);
+    };
+
+    const seed = {
+      pessoas: [
+        { id: uid(), nome: 'Francis Melo', telefone: '', setor: 'Administrativo', ativo: true },
+        { id: uid(), nome: 'Kécia', telefone: '', setor: 'Operacional', ativo: true },
+        { id: uid(), nome: 'Diego Lira', telefone: '', setor: 'Sistemas', ativo: true },
+        { id: uid(), nome: 'Elyzia', telefone: '', setor: 'Operacional', ativo: true }
+      ],
+      tarefas: [
+        { id: uid(), atividade: 'Incluir imagem do ecomemorial nas mensagens', abertura: '2026-06-01', prazo: '2026-06-12', responsavel: 'Francis Melo', status: 'Não iniciado', periodicidade: 1, proximoEnvio: hojeISO(), observacao: '' },
+        { id: uid(), atividade: 'Reunião: alinhamento compras insumos operacional', abertura: '2026-06-08', prazo: '2026-06-30', responsavel: 'Kécia', status: 'Em andamento', periodicidade: 2, proximoEnvio: hojeISO(), observacao: 'Validar itens utilizados, estoque e próximas compras.' },
+        { id: uid(), atividade: 'Manutenção: placa de entrada e pórtico', abertura: '2026-05-26', prazo: '2026-08-29', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Lixamento da parte metálica, textura e revisão das placas internas e externas.' },
+        { id: uid(), atividade: 'Manutenção gelágua/bebedouro', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Plotagem, troca das torneiras e avaliação dos bebedouros.' },
+        { id: uid(), atividade: 'Sistema de controle de frota', abertura: '2026-05-26', prazo: '2026-08-29', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 15, proximoEnvio: hojeISO(), observacao: 'Atualização e acompanhamento do sistema.' },
+        { id: uid(), atividade: 'Módulo estoque', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Diego Lira', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Sistema para controle de estoque.' },
+        { id: uid(), atividade: 'Link de pagamento - Sistema Unymos', abertura: '2026-06-01', prazo: '2026-06-13', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 1, proximoEnvio: hojeISO(), observacao: 'Envio de cobrança por link de pagamento no momento da cobrança.' },
+        { id: uid(), atividade: 'IPAG - Sistema Unymos', abertura: '2026-06-03', prazo: '2026-06-13', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 1, proximoEnvio: hojeISO(), observacao: 'Cadastro e envio de lançamento de cartão.' },
+        { id: uid(), atividade: 'URA - VIVO', abertura: '2026-06-08', prazo: '2026-06-30', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Retirada de equipamento físico para virtual.' },
+        { id: uid(), atividade: 'Régua de cobrança - Unymos', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Atualização da régua: cobrança com 5 e 10 dias, horários a partir de 09:00.' }
+      ],
+      config: {
+        diasAlerta: 7,
+        horaEnvio: '09:00',
+        linkPagina: PUBLIC_URL,
+        modelo: 'Olá, {nome}. Acompanhe o andamento das atividades pelo link: {link}'
+      }
+    };
+
+    let db = JSON.parse(localStorage.getItem('atividadesWhatsapp') || 'null') || seed;
+    db.config = db.config || seed.config;
+    if (!db.config.linkPagina) db.config.linkPagina = PUBLIC_URL;
+
+    const save = () => {
+      localStorage.setItem('atividadesWhatsapp', JSON.stringify(db));
+      render();
+    };
+
+    const pessoaPorNome = (nome) => db.pessoas.find(p => p.nome === nome);
+
+    const mensagem = (tarefa) => {
+      const pessoa = pessoaPorNome(tarefa.responsavel) || { nome: tarefa.responsavel };
+      return db.config.modelo
+        .replaceAll('{nome}', pessoa.nome || '')
+        .replaceAll('{atividade}', tarefa.atividade || '')
+        .replaceAll('{status}', tarefa.status || '')
+        .replaceAll('{prazo}', fmt(tarefa.prazo))
+        .replaceAll('{dias}', String(diasEntre(tarefa.prazo)))
+        .replaceAll('{observacao}', tarefa.observacao || 'Sem observação')
+        .replaceAll('{link}', db.config.linkPagina || 'link ainda não cadastrado');
+    };
+
+    const numeroWhatsValido = (telefone) => {
+      const numero = String(telefone || '').replace(/\D/g, '');
+      return numero.length >= 12 && numero.length <= 13;
+    };
+
+    const linkWhats = (telefone, texto) => {
+      const numero = String(telefone || '').replace(/\D/g, '');
+      return `https://web.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(texto)}`;
+    };
+
+    const agenda = () => {
+      const hoje = hojeISO();
+      return db.tarefas
+        .filter(t => t.status !== 'Concluído')
+        .filter(t => !t.proximoEnvio || t.proximoEnvio <= hoje || diasEntre(t.prazo) <= Number(db.config.diasAlerta))
+        .map(t => ({ tarefa: t, pessoa: pessoaPorNome(t.responsavel), msg: mensagem(t) }));
+    };
+
+    function renderPessoasSelect() {
+      const select = document.getElementById('responsavel');
+      select.innerHTML = db.pessoas
+        .filter(p => p.ativo)
+        .map(p => `<option>${p.nome}</option>`)
+        .join('');
+    }
+
+    function renderDashboard() {
+      const busca = document.getElementById('busca').value.toLowerCase();
+      const filtro = document.getElementById('filtro-status').value;
+      const rows = db.tarefas.filter(t => {
+        const texto = `${t.atividade} ${t.responsavel} ${t.observacao}`.toLowerCase();
+        return (!busca || texto.includes(busca)) && (!filtro || t.status === filtro);
+      });
+      document.getElementById('m-total').textContent = db.tarefas.length;
+      document.getElementById('m-andamento').textContent = db.tarefas.filter(t => t.status === 'Em andamento').length;
+      document.getElementById('m-vencidas').textContent = db.tarefas.filter(t => t.status !== 'Concluído' && diasEntre(t.prazo) < 0).length;
+      document.getElementById('m-envios').textContent = agenda().length;
+      document.getElementById('lista-dashboard').innerHTML = rows.map(t => {
+        const dias = diasEntre(t.prazo);
+        const classe = dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
+        const situacao = dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
+        return `<tr>
+          <td>${t.atividade}</td>
+          <td>${t.responsavel}</td>
+          <td><span class="pill info">${t.status}</span></td>
+          <td>${fmt(t.prazo)}</td>
+          <td>${dias}</td>
+          <td><span class="pill ${classe}">${situacao}</span></td>
+          <td>${fmt(t.proximoEnvio)}</td>
+          <td class="actions">
+            <button onclick="editarTarefa('${t.id}')">Editar</button>
+            <button onclick="prepararEnvio('${t.id}')">WhatsApp</button>
+            <button class="danger" onclick="excluirTarefa('${t.id}')">Excluir</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderPessoas() {
+      document.getElementById('lista-pessoas').innerHTML = db.pessoas.map(p => `<tr>
+        <td>${p.nome}</td>
+        <td>${p.telefone || '<span class="note">Cadastrar telefone</span>'}</td>
+        <td>${p.setor || ''}</td>
+        <td><span class="pill ${p.ativo ? 'ok' : 'danger'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+        <td class="actions">
+          <button onclick="editarPessoa('${p.id}')">Editar</button>
+          <button class="danger" onclick="excluirPessoa('${p.id}')">Excluir</button>
+        </td>
+      </tr>`).join('');
+    }
+
+    function renderEnvios() {
+      document.getElementById('lista-envios').innerHTML = agenda().map(item => {
+        const tel = item.pessoa?.telefone || '';
+        return `<tr>
+          <td>${fmt(item.tarefa.proximoEnvio || hojeISO())}</td>
+          <td>${item.tarefa.responsavel}</td>
+          <td>${tel || '<span class="note">Sem telefone</span>'}</td>
+          <td>${item.tarefa.atividade}</td>
+          <td>${item.msg}</td>
+          <td class="actions">
+            <button ${tel ? '' : 'disabled'} onclick="enviarTarefa('${item.tarefa.id}')">Enviar</button>
+            <button onclick="marcarEnviado('${item.tarefa.id}')">Marcar enviado</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderConfig() {
+      document.getElementById('modelo-msg').value = db.config.modelo;
+      document.getElementById('dias-alerta').value = db.config.diasAlerta;
+      document.getElementById('hora-envio').value = db.config.horaEnvio;
+      document.getElementById('link-pagina').value = db.config.linkPagina || '';
+    }
+
+    function render() {
+      renderPessoasSelect();
+      renderDashboard();
+      renderPessoas();
+      renderEnvios();
+      renderConfig();
+    }
+
+    function limparTarefa() {
+      document.getElementById('form-tarefa').reset();
+      document.getElementById('tarefa-id').value = '';
+      document.getElementById('abertura').value = hojeISO();
+      document.getElementById('proximoEnvio').value = hojeISO();
+    }
+
+    function limparPessoa() {
+      document.getElementById('form-pessoa').reset();
+      document.getElementById('pessoa-id').value = '';
+      document.getElementById('pessoa-ativo').value = 'true';
+    }
+
+    window.editarTarefa = (id) => {
+      const t = db.tarefas.find(x => x.id === id);
+      for (const key of ['atividade', 'abertura', 'prazo', 'responsavel', 'status', 'periodicidade', 'proximoEnvio', 'observacao']) {
+        document.getElementById(key).value = t[key] || '';
+      }
+      document.getElementById('tarefa-id').value = id;
+      document.querySelector('[data-tab="tarefas"]').click();
+    };
+
+    window.excluirTarefa = (id) => {
+      if (!confirm('Excluir esta tarefa?')) return;
+      db.tarefas = db.tarefas.filter(t => t.id !== id);
+      save();
+    };
+
+    window.editarPessoa = (id) => {
+      const p = db.pessoas.find(x => x.id === id);
+      document.getElementById('pessoa-id').value = id;
+      document.getElementById('pessoa-nome').value = p.nome;
+      document.getElementById('pessoa-telefone').value = p.telefone;
+      document.getElementById('pessoa-setor').value = p.setor || '';
+      document.getElementById('pessoa-ativo').value = String(p.ativo);
+      document.querySelector('[data-tab="pessoas"]').click();
+    };
+
+    window.excluirPessoa = (id) => {
+      if (!confirm('Excluir esta pessoa?')) return;
+      db.pessoas = db.pessoas.filter(p => p.id !== id);
+      save();
+    };
+
+    window.marcarEnviado = (id) => {
+      const t = db.tarefas.find(x => x.id === id);
+      const prox = new Date(hojeISO() + 'T00:00:00');
+      prox.setDate(prox.getDate() + Number(t.periodicidade || 1));
+      t.proximoEnvio = prox.toISOString().slice(0, 10);
+      save();
+    };
+
+    window.enviarTarefa = (id) => {
+      const t = db.tarefas.find(x => x.id === id);
+      const p = pessoaPorNome(t.responsavel);
+      if (!p?.telefone) return alert('Cadastre o telefone do responsável antes do envio.');
+      if (!numeroWhatsValido(p.telefone)) return alert('Confira o telefone. Use código do país + DDD + número. Exemplo: 5582987459196');
+      if (!db.config.linkPagina) return alert('Cadastre o link da página de acompanhamento em Configurações antes de enviar.');
+      window.open(linkWhats(p.telefone, mensagem(t)), '_blank');
+      marcarEnviado(id);
+    };
+
+    window.prepararEnvio = window.enviarTarefa;
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab, section').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.getElementById('form-tarefa').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('tarefa-id').value || uid();
+      const data = {
+        id,
+        atividade: document.getElementById('atividade').value,
+        abertura: document.getElementById('abertura').value,
+        prazo: document.getElementById('prazo').value,
+        responsavel: document.getElementById('responsavel').value,
+        status: document.getElementById('status').value,
+        periodicidade: Number(document.getElementById('periodicidade').value),
+        proximoEnvio: document.getElementById('proximoEnvio').value || hojeISO(),
+        observacao: document.getElementById('observacao').value
+      };
+      const i = db.tarefas.findIndex(t => t.id === id);
+      if (i >= 0) db.tarefas[i] = data; else db.tarefas.push(data);
+      limparTarefa();
+      save();
+    });
+
+    document.getElementById('form-pessoa').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('pessoa-id').value || uid();
+      const data = {
+        id,
+        nome: document.getElementById('pessoa-nome').value,
+        telefone: document.getElementById('pessoa-telefone').value,
+        setor: document.getElementById('pessoa-setor').value,
+        ativo: document.getElementById('pessoa-ativo').value === 'true'
+      };
+      const i = db.pessoas.findIndex(p => p.id === id);
+      if (i >= 0) db.pessoas[i] = data; else db.pessoas.push(data);
+      limparPessoa();
+      save();
+    });
+
+    document.getElementById('salvar-config').addEventListener('click', () => {
+      db.config.modelo = document.getElementById('modelo-msg').value;
+      db.config.diasAlerta = Number(document.getElementById('dias-alerta').value);
+      db.config.horaEnvio = document.getElementById('hora-envio').value;
+      db.config.linkPagina = document.getElementById('link-pagina').value.trim();
+      save();
+      alert('Configurações salvas.');
+    });
+
+    document.getElementById('enviar-pendentes').addEventListener('click', () => {
+      if (!db.config.linkPagina) return alert('Cadastre o link da página de acompanhamento em Configurações antes de enviar.');
+      agenda().forEach(item => {
+        if (item.pessoa?.telefone && numeroWhatsValido(item.pessoa.telefone)) {
+          window.open(linkWhats(item.pessoa.telefone, item.msg), '_blank');
+        }
+      });
+      alert('Abri os envios com telefone cadastrado. Confirme cada mensagem no WhatsApp.');
+    });
+
+    document.getElementById('atualizar-agenda').addEventListener('click', render);
+    document.getElementById('limpar-tarefa').addEventListener('click', limparTarefa);
+    document.getElementById('limpar-pessoa').addEventListener('click', limparPessoa);
+    document.getElementById('busca').addEventListener('input', renderDashboard);
+    document.getElementById('filtro-status').addEventListener('change', renderDashboard);
+
+    document.getElementById('btn-exportar').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'backup-atividades-whatsapp.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('btn-importar').addEventListener('click', () => document.getElementById('arquivo-importar').click());
+    document.getElementById('arquivo-importar').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      db = JSON.parse(await file.text());
+      save();
+    });
+
+    document.getElementById('restaurar').addEventListener('click', () => {
+      if (!confirm('Restaurar os dados de exemplo? O cadastro atual será substituído.')) return;
+      db = JSON.parse(JSON.stringify(seed));
+      save();
+    });
+
+    limparTarefa();
+    limparPessoa();
+    render();
+  </script>
+</body>
+</html>
