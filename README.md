@@ -27,6 +27,14 @@ Depois de alguns minutos, o GitHub vai gerar um link parecido com:
 
 Esse é o link que deve ser colocado em **Configurações > Link da página de acompanhamento** dentro do sistema.
 
+## Acesso do administrador
+
+As opções de editar, enviar WhatsApp, excluir, agenda de envios e configurações ficam escondidas para visitantes.
+
+Para abrir o modo administrador, clique em **Administrador** e use a senha:
+
+`ecomemorial2026`
+
 ## Observação importante
 
 O GitHub Pages publica a página, mas não salva dados em uma base online. Os dados cadastrados ficam no navegador de quem está usando a página.
