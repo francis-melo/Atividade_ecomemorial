@@ -917,8 +917,9 @@
       document.getElementById('m-envios').textContent = agenda().length;
       document.getElementById('lista-dashboard').innerHTML = rows.map(t => {
         const dias = diasEntre(t.prazo);
-        const classe = dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
-        const situacao = dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
+        const concluida = t.status === 'Concluído';
+        const classe = concluida ? 'ok' : dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
+        const situacao = concluida ? 'Concluído' : dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
         return `<tr>
           <td>
             <button class="task-link" type="button" onclick="alternarResumo('${t.id}')">${t.atividade}</button>
