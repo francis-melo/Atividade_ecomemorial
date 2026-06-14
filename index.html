@@ -916,8 +916,8 @@
       document.getElementById('m-vencidas').textContent = db.tarefas.filter(t => t.status !== 'Concluído' && diasEntre(t.prazo) < 0).length;
       document.getElementById('m-envios').textContent = agenda().length;
       document.getElementById('lista-dashboard').innerHTML = rows.map(t => {
-        const dias = diasEntre(t.prazo);
         const concluida = t.status === 'Concluído';
+        const dias = concluida ? 0 : diasEntre(t.prazo);
         const classe = concluida ? 'ok' : dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
         const situacao = concluida ? 'Concluído' : dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
         return `<tr>
