@@ -214,6 +214,29 @@
       z-index: 1;
     }
 
+    .sort-header {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font: inherit;
+      font-weight: 650;
+      text-align: left;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sort-header:hover {
+      color: var(--brand-dark);
+    }
+
+    .sort-icon {
+      color: #718096;
+      font-size: 12px;
+    }
+
     tr:last-child td { border-bottom: 0; }
 
     .pill {
@@ -637,8 +660,8 @@
           <thead>
             <tr>
               <th>Atividade</th>
-              <th>Responsável</th>
-              <th>Prazo</th>
+              <th><button class="sort-header" type="button" data-sort-field="responsavel">Responsável <span class="sort-icon" data-sort-icon="responsavel"></span></button></th>
+              <th><button class="sort-header" type="button" data-sort-field="prazo">Prazo <span class="sort-icon" data-sort-icon="prazo"></span></button></th>
               <th>Dias</th>
               <th>Situação</th>
               <th class="admin-only">Próximo envio</th>
@@ -846,6 +869,8 @@
     db.config = db.config || seed.config;
     if (!db.config.linkPagina) db.config.linkPagina = PUBLIC_URL;
 
+    let sortState = { field: 'responsavel', direction: 'asc' };
+
     const save = () => {
       localStorage.setItem('atividadesWhatsapp', JSON.stringify(db));
       render();
@@ -919,16 +944,28 @@
         if (dias === 0) return 2;
         return 3;
       };
+      const compararTexto = (a, b) => String(a || '').localeCompare(String(b || ''), 'pt-BR', { sensitivity: 'base' });
+      const compararPrazo = (a, b) => diasEntre(a.prazo) - diasEntre(b.prazo);
+      const aplicarDirecao = (valor) => sortState.direction === 'desc' ? -valor : valor;
       const rows = db.tarefas.filter(t => {
         const texto = `${t.atividade} ${t.responsavel} ${t.observacao}`.toLowerCase();
         return (!busca || texto.includes(busca)) &&
           (!filtro || t.status === filtro) &&
           (!filtroResponsavel || t.responsavel === filtroResponsavel);
       }).sort((a, b) => {
-        if (ordenacao === 'situacao') return situacaoPeso(a) - situacaoPeso(b) || diasEntre(a.prazo) - diasEntre(b.prazo);
-        if (ordenacao === 'prazo-asc') return diasEntre(a.prazo) - diasEntre(b.prazo);
-        if (ordenacao === 'prazo-desc') return diasEntre(b.prazo) - diasEntre(a.prazo);
-        return 0;
+        if (sortState.field === 'responsavel') {
+          return aplicarDirecao(compararTexto(a.responsavel, b.responsavel)) || compararPrazo(a, b);
+        }
+        if (sortState.field === 'prazo') {
+          return aplicarDirecao(compararPrazo(a, b)) || compararTexto(a.responsavel, b.responsavel);
+        }
+        if (ordenacao === 'situacao') return situacaoPeso(a) - situacaoPeso(b) || compararPrazo(a, b);
+        if (ordenacao === 'prazo-asc') return compararPrazo(a, b) || compararTexto(a.responsavel, b.responsavel);
+        if (ordenacao === 'prazo-desc') return -compararPrazo(a, b) || compararTexto(a.responsavel, b.responsavel);
+        return compararTexto(a.responsavel, b.responsavel) || compararPrazo(a, b);
+      });
+      document.querySelectorAll('[data-sort-icon]').forEach(icon => {
+        icon.textContent = icon.dataset.sortIcon === sortState.field ? (sortState.direction === 'asc' ? '▲' : '▼') : '';
       });
       document.getElementById('m-total').textContent = db.tarefas.length;
       document.getElementById('m-andamento').textContent = db.tarefas.filter(t => t.status === 'Em andamento').length;
@@ -1170,7 +1207,24 @@
     document.getElementById('limpar-pessoa').addEventListener('click', limparPessoa);
     document.getElementById('busca').addEventListener('input', renderDashboard);
     document.getElementById('filtro-responsavel').addEventListener('change', renderDashboard);
-    document.getElementById('ordenacao').addEventListener('change', renderDashboard);
+    document.getElementById('ordenacao').addEventListener('change', () => {
+      const valor = document.getElementById('ordenacao').value;
+      if (valor === 'prazo-asc') sortState = { field: 'prazo', direction: 'asc' };
+      else if (valor === 'prazo-desc') sortState = { field: 'prazo', direction: 'desc' };
+      else sortState = { field: '', direction: 'asc' };
+      renderDashboard();
+    });
+    document.querySelectorAll('[data-sort-field]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const field = btn.dataset.sortField;
+        sortState = {
+          field,
+          direction: sortState.field === field && sortState.direction === 'asc' ? 'desc' : 'asc'
+        };
+        document.getElementById('ordenacao').value = '';
+        renderDashboard();
+      });
+    });
     document.querySelectorAll('[data-filter-status]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById('filtro-status').value = btn.dataset.filterStatus;
