@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="version" content="2026-06-15-ordenacao-cabecalho">
+  <meta name="version" content="2026-06-15-planilha-25">
   <title>Acompanhamento de Atividades</title>
   <style>
     :root {
@@ -825,33 +825,53 @@
   <script>
     const ADMIN_PASSWORD = 'ecomemorial2026';
     const PUBLIC_URL = 'https://francis-melo.github.io/Atividade_ecomemorial/';
+    const DATA_VERSION = '2026-06-15-planilha-25';
     const hojeISO = () => new Date().toISOString().slice(0, 10);
     const uid = () => Math.random().toString(36).slice(2, 10);
     const fmt = (iso) => iso ? iso.split('-').reverse().join('/') : '';
     const diasEntre = (iso) => {
+      if (!iso) return 99999;
       const hoje = new Date(hojeISO() + 'T00:00:00');
       const data = new Date(iso + 'T00:00:00');
       return Math.round((data - hoje) / 86400000);
     };
 
     const seed = {
+      version: DATA_VERSION,
       pessoas: [
-        { id: uid(), nome: 'Francis Melo', telefone: '', setor: 'Administrativo', ativo: true },
-        { id: uid(), nome: 'Kécia', telefone: '', setor: 'Operacional', ativo: true },
-        { id: uid(), nome: 'Diego Lira', telefone: '', setor: 'Sistemas', ativo: true },
-        { id: uid(), nome: 'Elyzia', telefone: '', setor: 'Operacional', ativo: true }
+        { id: uid(), nome: "Diego Lira", telefone: '', setor: '', ativo: true },
+        { id: uid(), nome: "Elyzia", telefone: '', setor: '', ativo: true },
+        { id: uid(), nome: "Francis Melo", telefone: '', setor: '', ativo: true },
+        { id: uid(), nome: "Kécia", telefone: '', setor: '', ativo: true },
+        { id: uid(), nome: "Sem responsável", telefone: '', setor: '', ativo: true },
+        { id: uid(), nome: "Unymos", telefone: '', setor: '', ativo: true }
       ],
       tarefas: [
-        { id: uid(), atividade: 'Incluir imagem do ecomemorial nas mensagens', abertura: '2026-06-01', prazo: '2026-06-12', responsavel: 'Francis Melo', status: 'Não iniciado', periodicidade: 1, proximoEnvio: hojeISO(), observacao: '' },
-        { id: uid(), atividade: 'Reunião: alinhamento compras insumos operacional', abertura: '2026-06-08', prazo: '2026-06-30', responsavel: 'Kécia', status: 'Em andamento', periodicidade: 2, proximoEnvio: hojeISO(), observacao: 'Validar itens utilizados, estoque e próximas compras.' },
-        { id: uid(), atividade: 'Manutenção: placa de entrada e pórtico', abertura: '2026-05-26', prazo: '2026-08-29', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Lixamento da parte metálica, textura e revisão das placas internas e externas.' },
-        { id: uid(), atividade: 'Manutenção gelágua/bebedouro', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Plotagem, troca das torneiras e avaliação dos bebedouros.' },
-        { id: uid(), atividade: 'Sistema de controle de frota', abertura: '2026-05-26', prazo: '2026-08-29', responsavel: 'Kécia', status: 'Não iniciado', periodicidade: 15, proximoEnvio: hojeISO(), observacao: 'Atualização e acompanhamento do sistema.' },
-        { id: uid(), atividade: 'Módulo estoque', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Diego Lira', status: 'Não iniciado', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Sistema para controle de estoque.' },
-        { id: uid(), atividade: 'Link de pagamento - Sistema Unymos', abertura: '2026-06-01', prazo: '2026-06-13', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 1, proximoEnvio: hojeISO(), observacao: 'Envio de cobrança por link de pagamento no momento da cobrança.' },
-        { id: uid(), atividade: 'IPAG - Sistema Unymos', abertura: '2026-06-03', prazo: '2026-06-13', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 1, proximoEnvio: hojeISO(), observacao: 'Cadastro e envio de lançamento de cartão.' },
-        { id: uid(), atividade: 'URA - VIVO', abertura: '2026-06-08', prazo: '2026-06-30', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Retirada de equipamento físico para virtual.' },
-        { id: uid(), atividade: 'Régua de cobrança - Unymos', abertura: '2026-05-26', prazo: '2026-06-30', responsavel: 'Francis Melo', status: 'Em andamento', periodicidade: 7, proximoEnvio: hojeISO(), observacao: 'Atualização da régua: cobrança com 5 e 10 dias, horários a partir de 09:00.' }
+        { id: uid(), atividade: "LOGO ECOMEMORIAL NO TELEFONE PRINCIPAL", abertura: "2026-06-01", prazo: "2026-06-12", responsavel: "Francis Melo", status: "Concluído", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "" },
+        { id: uid(), atividade: "Manutenção: Placa de entrada, portico", abertura: "2026-05-26", prazo: "2026-08-30", responsavel: "Kécia", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Manutenção:\nLixamento da parte metálica e textura da entrada pórtico.\nVerificar todas as placas internas e externas." },
+        { id: uid(), atividade: "Manutenção gelagua/bebedouro", abertura: "2026-05-26", prazo: "2026-06-30", responsavel: "Kécia", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Plotagem e troca das torneiras. Avaliar todos os bebedouros." },
+        { id: uid(), atividade: "Sistema de controle de frota", abertura: "2026-05-26", prazo: "2026-06-30", responsavel: "Kécia", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Deyrize, operação de atualização e acompanhamento no sistema." },
+        { id: uid(), atividade: "Organização do Almoxarifado", abertura: "2026-05-26", prazo: "2026-06-30", responsavel: "Kécia", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Organização: Compra de prateleiras" },
+        { id: uid(), atividade: "Modulo estoque", abertura: "2026-05-26", prazo: "2026-06-30", responsavel: "Diego Lira", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Sistema para controle de estoque" },
+        { id: uid(), atividade: "Link de pagamento - Sistema Unymos", abertura: "2026-06-01", prazo: "2026-06-13", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Envio de cobrança para o cliente atraves do link de pagamento no cartão de credito." },
+        { id: uid(), atividade: "IPAG - Sistema Unymos", abertura: "2026-06-03", prazo: "2026-06-13", responsavel: "Francis Melo", status: "Concluído", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Sistema de cadastro e envio de lançamento cartão" },
+        { id: uid(), atividade: "URA - VIVO", abertura: "2026-06-08", prazo: "2026-06-30", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Retirada equipamento fisico para virtal" },
+        { id: uid(), atividade: "Pix avulso - Unymos", abertura: "2026-06-02", prazo: "2026-06-19", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "" },
+        { id: uid(), atividade: "Pix recorrente - Unymos", abertura: "2026-05-26", prazo: "", responsavel: "Francis Melo", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Sistema que vai assumir o débito em conta\n\nVerificar contratação com banco" },
+        { id: uid(), atividade: "APP cliente - Unymos", abertura: "2026-05-26", prazo: "", responsavel: "Francis Melo", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "APP cliente\n\naguardando demonstração da Unymos" },
+        { id: uid(), atividade: "IA COBRANÇA - Unymos", abertura: "2026-05-26", prazo: "", responsavel: "Francis Melo", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "IA cobrança: agentes para atendimentos." },
+        { id: uid(), atividade: "Regua de cobrança - BOLETO -  Unymos", abertura: "2026-05-26", prazo: "2026-06-30", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Atualização regua de cobrança:\n1 - Cobrança: 5 dia, 10 dias;\n2 - Atualização horários começando de 09:00\n\nAnalisar mensagens e periodicidade após os 10 dias" },
+        { id: uid(), atividade: "Sistema de controle de óbito", abertura: "2026-05-26", prazo: "2026-06-01", responsavel: "Elyzia", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "atualização diária dos óbtos e analise do passado" },
+        { id: uid(), atividade: "Mensagem mango por falta de interação 15 minutos", abertura: "2026-06-11", prazo: "2026-06-12", responsavel: "Diego Lira", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "" },
+        { id: uid(), atividade: "Inadimplência", abertura: "2026-06-10", prazo: "", responsavel: "Unymos", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "ticket para relatório inadimplência, modelo e detalhamento." },
+        { id: uid(), atividade: "Modulo financeiro - lançamentos", abertura: "2026-05-29", prazo: "2026-06-30", responsavel: "Kécia", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "lançamento em sistema até dezembro de todos os pagamentos" },
+        { id: uid(), atividade: "Sistema RH", abertura: "2026-05-27", prazo: "2026-06-15", responsavel: "Kécia", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "inicio batida no novo sistema : 01/06\n\natualização até 15/06\n\nCancelamento do sistema do ponto: ?" },
+        { id: uid(), atividade: "Regra pagamento boleto - Banco", abertura: "2026-06-27", prazo: "", responsavel: "Kécia", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "" },
+        { id: uid(), atividade: "Cobrança judicial - inadimplentes", abertura: "2026-05-27", prazo: "", responsavel: "Sem responsável", status: "Não iniciado", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "reunião para definição de comissão e monitoramento dos processos" },
+        { id: uid(), atividade: "Inclusão de TAGS no contrato", abertura: "2026-05-29", prazo: "2026-06-30", responsavel: "Francis Melo", status: "Concluído", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "identificação dos clientes com óbito em sistema" },
+        { id: uid(), atividade: "Motivos de cancelamentos", abertura: "2026-06-11", prazo: "2026-06-12", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Ajustar motivos de cancelamentos" },
+        { id: uid(), atividade: "Regua de cobrança - CARTÃO DE CREDITO -Unymos", abertura: "2026-06-11", prazo: "3036-06-30", responsavel: "Francis Melo", status: "Em andamento", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "gerar na regua de cobrança para envio automático\n\nGerar cobrança enviando link de pagamento para o cliente pagar" },
+        { id: uid(), atividade: "Reunião: Francis, Elyzia, Kécia, Deyrise.\nAlinhamento compras insumos operacional", abertura: "2026-06-08", prazo: "2026-06-30", responsavel: "Kécia", status: "Concluído", periodicidade: 7, proximoEnvio: hojeISO(), observacao: "Elyzia vai passar planilha contendo todos os itens utilizados e seus respectivos estoques\n\nDeyrize, vai em loco conferir todos os itens em estoque, para planejar compras. \nObs: Verificar itens que já foram pedidos." }
       ],
       config: {
         diasAlerta: 7,
@@ -870,6 +890,7 @@
     }
     db.tarefas = Array.isArray(db.tarefas) ? db.tarefas : seed.tarefas;
     db.pessoas = Array.isArray(db.pessoas) ? db.pessoas : seed.pessoas;
+    if (db.version !== DATA_VERSION) db = JSON.parse(JSON.stringify(seed));
     db.config = db.config || seed.config;
     if (!db.config.linkPagina) db.config.linkPagina = PUBLIC_URL;
 
@@ -973,13 +994,14 @@
       });
       document.getElementById('m-total').textContent = db.tarefas.length;
       document.getElementById('m-andamento').textContent = db.tarefas.filter(t => t.status === 'Em andamento').length;
-      document.getElementById('m-vencidas').textContent = db.tarefas.filter(t => t.status !== 'Concluído' && diasEntre(t.prazo) < 0).length;
+      document.getElementById('m-vencidas').textContent = db.tarefas.filter(t => t.prazo && t.status !== 'Concluído' && diasEntre(t.prazo) < 0).length;
       document.getElementById('m-envios').textContent = agenda().length;
       document.getElementById('lista-dashboard').innerHTML = rows.map(t => {
         const concluida = t.status === 'Concluído';
-        const dias = concluida ? 0 : diasEntre(t.prazo);
-        const classe = concluida ? 'ok' : dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
-        const situacao = concluida ? 'Concluído' : dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
+        const semPrazo = !t.prazo;
+        const dias = concluida ? 0 : semPrazo ? '' : diasEntre(t.prazo);
+        const classe = concluida ? 'ok' : semPrazo ? 'info' : dias < 0 ? 'danger' : dias <= Number(db.config.diasAlerta) ? 'warn' : 'ok';
+        const situacao = concluida ? 'Concluído' : semPrazo ? 'Sem prazo' : dias < 0 ? 'Vencida' : dias === 0 ? 'Vence hoje' : 'Dentro do prazo';
         return `<tr>
           <td>
             <button class="task-link" type="button" onclick="alternarResumo('${t.id}')">${t.atividade}</button>
@@ -987,12 +1009,12 @@
               <strong>Resumo da atividade</strong>
               <p><b>Responsável:</b> ${t.responsavel}</p>
               <p><b>Status:</b> ${t.status}</p>
-              <p><b>Prazo:</b> ${fmt(t.prazo)} (${dias} dia(s))</p>
+              <p><b>Prazo:</b> ${fmt(t.prazo) || 'Sem prazo'} ${semPrazo ? '' : '(' + dias + ' dia(s))'}</p>
               <p><b>Observações:</b> ${t.observacao || 'Sem observação cadastrada.'}</p>
             </div>
           </td>
           <td>${t.responsavel}</td>
-          <td>${fmt(t.prazo)}</td>
+          <td>${fmt(t.prazo) || 'Sem prazo'}</td>
           <td>${dias}</td>
           <td><span class="pill ${classe}">${situacao}</span></td>
           <td class="admin-only">${fmt(t.proximoEnvio)}</td>
@@ -1371,3 +1393,4 @@
   </script>
 </body>
 </html>
+
