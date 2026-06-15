@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="version" content="2026-06-15-planilha-25">
+  <meta name="version" content="2026-06-15-google-sheets">
   <title>Acompanhamento de Atividades</title>
   <style>
     :root {
@@ -690,7 +690,7 @@
           <input id="abertura" type="date" required>
         </label>
         <label>Prazo de entrega
-          <input id="prazo" type="date" required>
+          <input id="prazo" type="date">
         </label>
         <label>Responsável
           <select id="responsavel" required></select>
@@ -825,7 +825,8 @@
   <script>
     const ADMIN_PASSWORD = 'ecomemorial2026';
     const PUBLIC_URL = 'https://francis-melo.github.io/Atividade_ecomemorial/';
-    const DATA_VERSION = '2026-06-15-planilha-25';
+    const DATA_VERSION = '2026-06-15-google-sheets';
+    const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbz4sXSRnd5p7ckZhWEkjGbmV8U23d_G-LxwhrTrHeuznF2TyEcfLNOqS1Qud53Jb6Yc/exec';
     const hojeISO = () => new Date().toISOString().slice(0, 10);
     const uid = () => Math.random().toString(36).slice(2, 10);
     const fmt = (iso) => iso ? iso.split('-').reverse().join('/') : '';
@@ -895,10 +896,116 @@
     if (!db.config.linkPagina) db.config.linkPagina = PUBLIC_URL;
 
     let sortState = { field: 'responsavel', direction: 'asc' };
+    let syncingSheets = false;
+
+    const persistLocal = () => {
+      localStorage.setItem('atividadesWhatsapp', JSON.stringify(db));
+    };
+
+    const normalizarStatus = (status) => {
+      const valor = String(status || '').trim().toLowerCase();
+      if (valor === 'concluído' || valor === 'concluido') return 'Concluído';
+      if (valor === 'em andamento') return 'Em andamento';
+      if (valor === 'pausado') return 'Pausado';
+      return 'Não iniciado';
+    };
+
+    const isoFromSheet = (value) => {
+      if (!value) return '';
+      if (typeof value === 'string') {
+        if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+          const [dia, mes, ano] = value.split('/');
+          return `${ano}-${mes}-${dia}`;
+        }
+      }
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+    };
+
+    const situacaoDaTarefa = (tarefa) => {
+      if (tarefa.status === 'Concluído') return 'Concluído';
+      if (!tarefa.prazo) return 'Sem prazo';
+      const dias = diasEntre(tarefa.prazo);
+      if (dias < 0) return 'Vencida';
+      if (dias === 0) return 'Vence hoje';
+      return 'Dentro do prazo';
+    };
+
+    const sheetRowsToDb = (rows) => {
+      const tarefas = rows.filter(row => row.Atividade).map(row => ({
+        id: uid(),
+        atividade: String(row.Atividade || '').trim(),
+        abertura: isoFromSheet(row['Data de Abertura']),
+        prazo: isoFromSheet(row['Prazo de Entrega']),
+        responsavel: String(row.Responsável || row.Responsavel || 'Sem responsável').trim() || 'Sem responsável',
+        status: normalizarStatus(row.Status),
+        periodicidade: 7,
+        proximoEnvio: hojeISO(),
+        observacao: [row.Observação, row.Observação2, row.Observação3].filter(Boolean).join('\n\n')
+      }));
+      const nomes = [...new Set(tarefas.map(t => t.responsavel).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      return {
+        ...seed,
+        version: DATA_VERSION,
+        pessoas: nomes.map(nome => ({ id: uid(), nome, telefone: '', setor: '', ativo: true })),
+        tarefas
+      };
+    };
+
+    const tarefasParaPlanilha = () => db.tarefas.map(t => {
+      const partes = String(t.observacao || '').split(/\n\s*\n/);
+      const dias = t.status === 'Concluído' ? 0 : t.prazo ? diasEntre(t.prazo) : '';
+      return {
+        Atividade: t.atividade || '',
+        'Data de Abertura': t.abertura || '',
+        Status: t.status || '',
+        'Prazo de Entrega': t.prazo || '',
+        Responsável: t.responsavel || '',
+        'Dias Restantes': dias,
+        Situação: situacaoDaTarefa(t),
+        Observação: partes[0] || '',
+        Observação2: partes[1] || '',
+        Observação3: partes.slice(2).join('\n\n') || ''
+      };
+    });
+
+    const syncToSheets = async () => {
+      if (syncingSheets) return;
+      syncingSheets = true;
+      try {
+        await fetch(SHEETS_API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'save', data: tarefasParaPlanilha() })
+        });
+      } catch (error) {
+        console.warn('Não foi possível sincronizar com a Planilha Google.', error);
+      } finally {
+        syncingSheets = false;
+      }
+    };
+
+    const loadFromSheets = async () => {
+      try {
+        const response = await fetch(`${SHEETS_API_URL}?v=${Date.now()}`, { cache: 'no-store' });
+        const result = await response.json();
+        if (result.ok && Array.isArray(result.data) && result.data.length) {
+          db = sheetRowsToDb(result.data);
+          persistLocal();
+        }
+      } catch (error) {
+        console.warn('Usando dados locais porque a Planilha Google não respondeu.', error);
+      }
+    };
 
     const save = () => {
-      localStorage.setItem('atividadesWhatsapp', JSON.stringify(db));
+      db.version = DATA_VERSION;
+      persistLocal();
       render();
+      syncToSheets();
     };
 
     const setAdminMode = (active) => {
@@ -1386,10 +1493,13 @@
       save();
     });
 
-    limparTarefa();
-    limparPessoa();
-    setAdminMode(sessionStorage.getItem('adminMode') === 'true');
-    render();
+    (async () => {
+      await loadFromSheets();
+      limparTarefa();
+      limparPessoa();
+      setAdminMode(sessionStorage.getItem('adminMode') === 'true');
+      render();
+    })();
   </script>
 </body>
 </html>
