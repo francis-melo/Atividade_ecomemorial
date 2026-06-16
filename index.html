@@ -989,18 +989,29 @@
       }
     };
 
-    const loadFromSheets = async () => {
-      try {
-        const response = await fetch(`${SHEETS_API_URL}?v=${Date.now()}`, { cache: 'no-store' });
-        const result = await response.json();
-        if (result.ok && Array.isArray(result.data) && result.data.length) {
+    const loadFromSheets = () => new Promise((resolve) => {
+      const callbackName = `receberPlanilha_${Date.now()}`;
+      const script = document.createElement('script');
+      const finalizar = () => {
+        delete window[callbackName];
+        script.remove();
+        resolve();
+      };
+      window[callbackName] = (result) => {
+        if (result?.ok && Array.isArray(result.data) && result.data.length) {
           db = sheetRowsToDb(result.data);
           persistLocal();
         }
-      } catch (error) {
-        console.warn('Usando dados locais porque a Planilha Google não respondeu.', error);
-      }
-    };
+        finalizar();
+      };
+      script.onerror = () => {
+        console.warn('Usando dados locais porque a Planilha Google não respondeu.');
+        finalizar();
+      };
+      script.src = `${SHEETS_API_URL}?callback=${callbackName}&v=${Date.now()}`;
+      document.head.appendChild(script);
+      setTimeout(finalizar, 10000);
+    });
 
     const save = () => {
       db.version = DATA_VERSION;
