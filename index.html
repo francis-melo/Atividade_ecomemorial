@@ -652,6 +652,7 @@
           <button class="status-option active" type="button" data-filter-status="">Todos</button>
           <button class="status-option" type="button" data-filter-status="Não iniciado">Não iniciado</button>
           <button class="status-option" type="button" data-filter-status="Em andamento">Em andamento</button>
+          <button class="status-option" type="button" data-filter-status="Vencida">Vencida</button>
           <button class="status-option" type="button" data-filter-status="Concluído">Concluído</button>
           <button class="status-option" type="button" data-filter-status="Pausado">Pausado</button>
         </div>
@@ -1079,10 +1080,15 @@
       const compararTexto = (a, b) => String(a || '').localeCompare(String(b || ''), 'pt-BR', { sensitivity: 'base' });
       const compararPrazo = (a, b) => diasEntre(a.prazo) - diasEntre(b.prazo);
       const aplicarDirecao = (valor) => sortState.direction === 'desc' ? -valor : valor;
+      const correspondeFiltro = (tarefa) => {
+        if (!filtro) return true;
+        if (filtro === 'Vencida') return tarefa.prazo && tarefa.status !== 'Concluído' && diasEntre(tarefa.prazo) < 0;
+        return tarefa.status === filtro;
+      };
       const rows = db.tarefas.filter(t => {
         const texto = `${t.atividade} ${t.responsavel} ${t.observacao}`.toLowerCase();
         return (!busca || texto.includes(busca)) &&
-          (!filtro || t.status === filtro) &&
+          correspondeFiltro(t) &&
           (!filtroResponsavel || t.responsavel === filtroResponsavel);
       }).sort((a, b) => {
         if (sortState.field === 'responsavel') {
@@ -1276,7 +1282,7 @@
       btn.addEventListener('click', () => document.querySelector('[data-tab="dashboard"]').click());
     });
 
-    document.querySelectorAll('.status-option').forEach(btn => {
+    document.querySelectorAll('[data-status]').forEach(btn => {
       btn.addEventListener('click', () => setStatus(btn.dataset.status));
     });
 
