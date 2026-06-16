@@ -656,6 +656,7 @@
           <button class="status-option" type="button" data-filter-status="Concluído">Concluído</button>
           <button class="status-option" type="button" data-filter-status="Pausado">Pausado</button>
         </div>
+        <button class="primary admin-only" id="btn-incluir-tarefa" type="button">Incluir tarefa</button>
         <button class="primary admin-only" id="btn-exportar">Exportar backup</button>
         <button class="admin-only" id="btn-importar">Importar Excel/backup</button>
         <input id="arquivo-importar" class="hidden" type="file" accept=".json,.xlsx,.xls,application/json">
@@ -1370,6 +1371,11 @@
     });
 
     document.getElementById('atualizar-agenda').addEventListener('click', render);
+    document.getElementById('btn-incluir-tarefa').addEventListener('click', () => {
+      limparTarefa();
+      document.querySelector('[data-tab="tarefas"]').click();
+      document.getElementById('atividade').focus();
+    });
     document.getElementById('limpar-tarefa').addEventListener('click', limparTarefa);
     document.getElementById('limpar-pessoa').addEventListener('click', limparPessoa);
     document.getElementById('busca').addEventListener('input', renderDashboard);
