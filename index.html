@@ -828,6 +828,7 @@
     const ADMIN_PASSWORD = 'ecomemorial2026';
     const PUBLIC_URL = 'https://francis-melo.github.io/Atividade_ecomemorial/';
     const DATA_VERSION = '2026-06-15-google-sheets';
+    const PESSOAS_STORAGE_KEY = 'atividadesPessoasWhatsapp';
     const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxrdXeT_9qyICGMlGSIfwoEzrnl7VGh17RS4EpZFW_Ap9rIBKrGoUzvCAoPdSmLQv-V/exec';
     const hojeISO = () => new Date().toISOString().slice(0, 10);
     const uid = () => Math.random().toString(36).slice(2, 10);
@@ -902,6 +903,15 @@
 
     const persistLocal = () => {
       localStorage.setItem('atividadesWhatsapp', JSON.stringify(db));
+      localStorage.setItem(PESSOAS_STORAGE_KEY, JSON.stringify(db.pessoas || []));
+    };
+
+    const pessoasSalvas = () => {
+      try {
+        return JSON.parse(localStorage.getItem(PESSOAS_STORAGE_KEY) || '[]');
+      } catch (error) {
+        return [];
+      }
     };
 
     const normalizarStatus = (status) => {
@@ -935,6 +945,14 @@
     };
 
     const sheetRowsToDb = (rows) => {
+      const pessoasExistentes = [...(db?.pessoas || []), ...pessoasSalvas()];
+      const pessoaExistentePorNome = (nome) => pessoasExistentes.find(p => p.nome === nome);
+      const telefonePorNome = new Map();
+      rows.forEach(row => {
+        const nome = String(row.Responsável || row.Responsavel || '').trim();
+        const telefone = String(row.Telefone || row['Telefone Responsável'] || row['Telefone do Responsável'] || '').trim();
+        if (nome && telefone) telefonePorNome.set(nome, telefone);
+      });
       const tarefas = rows.filter(row => row.Atividade).map(row => ({
         id: uid(),
         atividade: String(row.Atividade || '').trim(),
@@ -950,7 +968,16 @@
       return {
         ...seed,
         version: DATA_VERSION,
-        pessoas: nomes.map(nome => ({ id: uid(), nome, telefone: '', setor: '', ativo: true })),
+        pessoas: nomes.map(nome => {
+          const existente = pessoaExistentePorNome(nome);
+          return {
+            id: existente?.id || uid(),
+            nome,
+            telefone: telefonePorNome.get(nome) || existente?.telefone || '',
+            setor: existente?.setor || '',
+            ativo: existente?.ativo !== false
+          };
+        }),
         tarefas
       };
     };
@@ -958,12 +985,14 @@
     const tarefasParaPlanilha = () => db.tarefas.map(t => {
       const partes = String(t.observacao || '').split(/\n\s*\n/);
       const dias = t.status === 'Concluído' ? 0 : t.prazo ? diasEntre(t.prazo) : '';
+      const pessoa = db.pessoas.find(p => p.nome === t.responsavel);
       return {
         Atividade: t.atividade || '',
         'Data de Abertura': t.abertura || '',
         Status: t.status || '',
         'Prazo de Entrega': t.prazo || '',
         Responsável: t.responsavel || '',
+        Telefone: pessoa?.telefone || '',
         'Dias Restantes': dias,
         Situação: situacaoDaTarefa(t),
         Observação: partes[0] || '',
@@ -1504,9 +1533,14 @@
       }
 
       const pessoas = [...db.pessoas];
-      tarefas.forEach(tarefa => {
-        if (tarefa.responsavel && !pessoas.some(p => p.nome === tarefa.responsavel)) {
-          pessoas.push({ id: uid(), nome: tarefa.responsavel, telefone: '', setor: '', ativo: true });
+      tarefas.forEach((tarefa, index) => {
+        if (!tarefa.responsavel) return;
+        const telefone = String(valorLinha(rows[index], ['Telefone', 'Telefone Responsável', 'Telefone do Responsável'])).trim();
+        const pessoa = pessoas.find(p => p.nome === tarefa.responsavel);
+        if (pessoa) {
+          if (telefone) pessoa.telefone = telefone;
+        } else {
+          pessoas.push({ id: uid(), nome: tarefa.responsavel, telefone, setor: '', ativo: true });
         }
       });
       db.tarefas = tarefas;
